@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Photo and Video Capture with Timestamp and Location</title>
+    <title>Photo and Video Capture with Location and Timestamp</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -83,6 +83,7 @@
     <video id="video" autoplay></video>
     <!-- Controls for photo -->
     <button id="capturePhoto">Capture Photo</button>
+    <button id="downloadPhoto" style="display: none;">Download Photo</button>
     <canvas id="canvas" style="display: none;"></canvas>
 
     <!-- Controls for video -->
@@ -98,6 +99,7 @@
         const canvas = document.querySelector('#canvas');
         const context = canvas.getContext('2d');
         const capturePhotoButton = document.querySelector('#capturePhoto');
+        const downloadPhotoButton = document.querySelector('#downloadPhoto');
         const startRecordButton = document.querySelector('#startRecord');
         const stopRecordButton = document.querySelector('#stopRecord');
         const recordedVideo = document.querySelector('#recordedVideo');
@@ -136,9 +138,20 @@
 
         // Capture photo from video stream
         capturePhotoButton.addEventListener('click', () => {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
             addTimestampAndLocation();
             canvas.style.display = 'block'; // Display the captured photo
+            downloadPhotoButton.style.display = 'inline-block'; // Show download button
+        });
+
+        // Download captured photo
+        downloadPhotoButton.addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = 'captured_photo.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
         });
 
         // Start video recording
@@ -166,9 +179,11 @@
             // Get location
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(position => {
-                    const locationText = `Lat: ${position.coords.latitude}, Lon: ${position.coords.longitude}`;
+                    const locationText = `Lat: ${position.coords.latitude.toFixed(4)}, Lon: ${position.coords.longitude.toFixed(4)}`;
                     context.fillText(locationText, 10, 60);
                     info.textContent = `Location: ${locationText}`;
+                }, () => {
+                    info.textContent = "Unable to retrieve location.";
                 });
             } else {
                 info.textContent = "Geolocation is not supported by this browser.";
