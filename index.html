@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo and Video Capture with Timestamp and Location</title>
+</head>
+<body>
+    <h1>Capture Photo and Video with Location and Timestamp</h1>
+
+    <!-- Video preview -->
+    <video id="video" width="320" height="240" autoplay></video>
+    <!-- Controls for photo -->
+    <button id="capturePhoto">Capture Photo</button>
+    <canvas id="canvas" width="320" height="240" style="display: none;"></canvas>
+
+    <!-- Controls for video -->
+    <button id="startRecord">Start Recording</button>
+    <button id="stopRecord" disabled>Stop Recording</button>
+    <video id="recordedVideo" controls style="display: none;"></video>
+
+    <!-- Display location and timestamp -->
+    <p id="info"></p>
+
+    <script>
+        const video = document.querySelector('#video');
+        const canvas = document.querySelector('#canvas');
+        const context = canvas.getContext('2d');
+        const capturePhotoButton = document.querySelector('#capturePhoto');
+        const startRecordButton = document.querySelector('#startRecord');
+        const stopRecordButton = document.querySelector('#stopRecord');
+        const recordedVideo = document.querySelector('#recordedVideo');
+        const info = document.querySelector('#info');
+
+        let mediaRecorder;
+        let recordedChunks = [];
+
+        // Access video stream from the device's camera
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+            .then(stream => {
+                video.srcObject = stream;
+
+                // Initialize MediaRecorder for video recording
+                mediaRecorder = new MediaRecorder(stream);
+
+                // Handle data available event to store recorded video data
+                mediaRecorder.ondataavailable = function(e) {
+                    if (e.data.size > 0) {
+                        recordedChunks.push(e.data);
+                    }
+                };
+
+                // When recording stops, create a video blob and set it to the video element
+                mediaRecorder.onstop = function() {
+                    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                    recordedChunks = [];
+                    const videoURL = URL.createObjectURL(blob);
+                    recordedVideo.src = videoURL;
+                    recordedVideo.style.display = 'block';
+                };
+            })
+            .catch(err => {
+                console.error("Error accessing camera: " + err);
+            });
+
+        // Capture photo from video stream
+        capturePhotoButton.addEventListener('click', () => {
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            addTimestampAndLocation();
+            canvas.style.display = 'block'; // Display the captured photo
+        });
+
+        // Start video recording
+        startRecordButton.addEventListener('click', () => {
+            mediaRecorder.start();
+            startRecordButton.disabled = true;
+            stopRecordButton.disabled = false;
+        });
+
+        // Stop video recording
+        stopRecordButton.addEventListener('click', () => {
+            mediaRecorder.stop();
+            startRecordButton.disabled = false;
+            stopRecordButton.disabled = true;
+        });
+
+        // Add timestamp and location to the photo
+        function addTimestampAndLocation() {
+            const now = new Date();
+            const timestamp = `Captured on: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
+            context.font = '16px Arial';
+            context.fillStyle = 'red';
+            context.fillText(timestamp, 10, 30);
+
+            // Get location
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    const locationText = `Lat: ${position.coords.latitude}, Lon: ${position.coords.longitude}`;
+                    context.fillText(locationText, 10, 60);
+                    info.textContent = `Location: ${locationText}`;
+                });
+            } else {
+                info.textContent = "Geolocation is not supported by this browser.";
+            }
+        }
+    </script>
+</body>
+</html>
