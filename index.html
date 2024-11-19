@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Photo and Video Capture with Location and Audio Control</title>
+    <title>Photo and Video Capture with Address and Audio Control</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -192,22 +192,21 @@
             const now = new Date();
             const timestamp = `Captured on: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
             context.font = '16px Arial';
-            context.fillStyle = 'red';
-            context.fillText(timestamp, 10, 30);
+            context.fillStyle = 'white'; // Changed text color to white
+            context.fillText(timestamp, 10, canvas.height - 40); // Positioned at the bottom
 
             // Get location and fetch address using Reverse Geocoding API
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(position => {
                     const lat = position.coords.latitude;
                     const lon = position.coords.longitude;
-                    const locationText = `Lat: ${lat.toFixed(4)}, Lon: ${lon.toFixed(4)}`;
                     
                     // Fetch address using a reverse geocoding API (example using OpenStreetMap Nominatim)
                     fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
                         .then(response => response.json())
                         .then(data => {
                             const address = data.display_name || "Address not found";
-                            context.fillText(address, 10, 60);
+                            context.fillText(address, 10, canvas.height - 20); // Positioned below timestamp
                             info.textContent = `Location: ${address}`;
                         })
                         .catch(() => {
