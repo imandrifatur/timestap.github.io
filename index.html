@@ -58,6 +58,8 @@
             margin-top: 10px;
             font-size: 0.9rem;
             text-align: center;
+            word-wrap: break-word; /* Membuat teks tidak memanjang */
+            max-width: 90%; /* Menyesuaikan lebar maksimal */
         }
 
         @media (max-width: 600px) {
@@ -74,6 +76,12 @@
                 font-size: 0.8rem;
             }
         }
+
+        .copyright {
+            margin-top: 15px;
+            font-size: 0.75rem;
+            color: #666;
+        }
     </style>
 </head>
 <body>
@@ -89,6 +97,7 @@
     <!-- Controls for video -->
     <button id="startRecord">Start Recording</button>
     <button id="stopRecord" disabled>Stop Recording</button>
+    <button id="downloadVideo" style="display: none;">Download Video</button>
     <video id="recordedVideo" controls style="display: none;"></video>
 
     <!-- Display location and address -->
@@ -97,6 +106,9 @@
         <button id="muteAudio">Mute Audio</button>
         <button id="unmuteAudio" style="display: none;">Unmute Audio</button>
     </div>
+
+    <!-- Copyright -->
+    <p class="copyright">© Imandrifatur 2024</p>
 
     <script>
         const video = document.querySelector('#video');
@@ -107,6 +119,7 @@
         const startRecordButton = document.querySelector('#startRecord');
         const stopRecordButton = document.querySelector('#stopRecord');
         const recordedVideo = document.querySelector('#recordedVideo');
+        const downloadVideoButton = document.querySelector('#downloadVideo');
         const info = document.querySelector('#info');
         const muteAudioButton = document.querySelector('#muteAudio');
         const unmuteAudioButton = document.querySelector('#unmuteAudio');
@@ -136,6 +149,15 @@
                     const videoURL = URL.createObjectURL(blob);
                     recordedVideo.src = videoURL;
                     recordedVideo.style.display = 'block';
+                    downloadVideoButton.style.display = 'inline-block';
+
+                    // Add download functionality for the recorded video
+                    downloadVideoButton.addEventListener('click', () => {
+                        const link = document.createElement('a');
+                        link.download = 'recorded_video.webm';
+                        link.href = videoURL;
+                        link.click();
+                    });
                 };
 
                 // Mute/unmute audio controls
@@ -193,7 +215,7 @@
             const timestamp = `Captured on: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
             context.font = '16px Arial';
             context.fillStyle = 'white'; // Changed text color to white
-            context.fillText(timestamp, 10, canvas.height - 40); // Positioned at the bottom
+            context.fillText(timestamp, 10, canvas.height - 60); // Positioned at the bottom
 
             // Get location and fetch address using Reverse Geocoding API
             if (navigator.geolocation) {
@@ -206,7 +228,9 @@
                         .then(response => response.json())
                         .then(data => {
                             const address = data.display_name || "Address not found";
-                            context.fillText(address, 10, canvas.height - 20); // Positioned below timestamp
+                            const truncatedAddress = address.length > 50 ? address.substring(0, 50) + "..." : address; // Limit address length
+                            context.fillText(truncatedAddress, 10, canvas.height - 40); // Positioned below timestamp
+                            context.fillText("© Imandrifatur 2024", 10, canvas.height - 20); // Add copyright
                             info.textContent = `Location: ${address}`;
                         })
                         .catch(() => {
