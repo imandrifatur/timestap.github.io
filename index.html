@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Photo and Video Capture with Location and Timestamp</title>
+    <title>Photo and Video Capture with Location and Audio Control</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -54,7 +54,7 @@
             cursor: not-allowed;
         }
 
-        #info {
+        #info, #audioControl {
             margin-top: 10px;
             font-size: 0.9rem;
             text-align: center;
@@ -77,10 +77,10 @@
     </style>
 </head>
 <body>
-    <h1>Capture Photo and Video with Location and Timestamp</h1>
+    <h1>Capture Photo and Video with Address and Audio Control</h1>
 
     <!-- Video preview -->
-    <video id="video" autoplay></video>
+    <video id="video" autoplay controls></video>
     <!-- Controls for photo -->
     <button id="capturePhoto">Capture Photo</button>
     <button id="downloadPhoto" style="display: none;">Download Photo</button>
@@ -91,8 +91,12 @@
     <button id="stopRecord" disabled>Stop Recording</button>
     <video id="recordedVideo" controls style="display: none;"></video>
 
-    <!-- Display location and timestamp -->
-    <p id="info"></p>
+    <!-- Display location and address -->
+    <p id="info">Fetching location...</p>
+    <div id="audioControl">
+        <button id="muteAudio">Mute Audio</button>
+        <button id="unmuteAudio" style="display: none;">Unmute Audio</button>
+    </div>
 
     <script>
         const video = document.querySelector('#video');
@@ -104,6 +108,8 @@
         const stopRecordButton = document.querySelector('#stopRecord');
         const recordedVideo = document.querySelector('#recordedVideo');
         const info = document.querySelector('#info');
+        const muteAudioButton = document.querySelector('#muteAudio');
+        const unmuteAudioButton = document.querySelector('#unmuteAudio');
 
         let mediaRecorder;
         let recordedChunks = [];
@@ -131,6 +137,19 @@
                     recordedVideo.src = videoURL;
                     recordedVideo.style.display = 'block';
                 };
+
+                // Mute/unmute audio controls
+                muteAudioButton.addEventListener('click', () => {
+                    stream.getAudioTracks().forEach(track => track.enabled = false);
+                    muteAudioButton.style.display = 'none';
+                    unmuteAudioButton.style.display = 'inline-block';
+                });
+
+                unmuteAudioButton.addEventListener('click', () => {
+                    stream.getAudioTracks().forEach(track => track.enabled = true);
+                    muteAudioButton.style.display = 'inline-block';
+                    unmuteAudioButton.style.display = 'none';
+                });
             })
             .catch(err => {
                 console.error("Error accessing camera: " + err);
@@ -141,7 +160,7 @@
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            addTimestampAndLocation();
+            addTimestampAndAddress();
             canvas.style.display = 'block'; // Display the captured photo
             downloadPhotoButton.style.display = 'inline-block'; // Show download button
         });
@@ -168,20 +187,32 @@
             stopRecordButton.disabled = true;
         });
 
-        // Add timestamp and location to the photo
-        function addTimestampAndLocation() {
+        // Add timestamp and address to the photo
+        function addTimestampAndAddress() {
             const now = new Date();
             const timestamp = `Captured on: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
             context.font = '16px Arial';
             context.fillStyle = 'red';
             context.fillText(timestamp, 10, 30);
 
-            // Get location
+            // Get location and fetch address using Reverse Geocoding API
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(position => {
-                    const locationText = `Lat: ${position.coords.latitude.toFixed(4)}, Lon: ${position.coords.longitude.toFixed(4)}`;
-                    context.fillText(locationText, 10, 60);
-                    info.textContent = `Location: ${locationText}`;
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    const locationText = `Lat: ${lat.toFixed(4)}, Lon: ${lon.toFixed(4)}`;
+                    
+                    // Fetch address using a reverse geocoding API (example using OpenStreetMap Nominatim)
+                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            const address = data.display_name || "Address not found";
+                            context.fillText(address, 10, 60);
+                            info.textContent = `Location: ${address}`;
+                        })
+                        .catch(() => {
+                            info.textContent = "Unable to fetch address.";
+                        });
                 }, () => {
                     info.textContent = "Unable to retrieve location.";
                 });
