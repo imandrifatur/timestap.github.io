@@ -4,15 +4,86 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Photo and Video Capture with Timestamp and Location</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        video, canvas {
+            max-width: 100%;
+            width: 90%;
+            height: auto;
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
+        button {
+            padding: 10px 15px;
+            font-size: 1rem;
+            margin: 10px 5px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        #info {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.2rem;
+            }
+
+            button {
+                padding: 8px 12px;
+                font-size: 0.9rem;
+            }
+
+            #info {
+                font-size: 0.8rem;
+            }
+        }
+    </style>
 </head>
 <body>
     <h1>Capture Photo and Video with Location and Timestamp</h1>
 
     <!-- Video preview -->
-    <video id="video" width="320" height="240" autoplay></video>
+    <video id="video" autoplay></video>
     <!-- Controls for photo -->
     <button id="capturePhoto">Capture Photo</button>
-    <canvas id="canvas" width="320" height="240" style="display: none;"></canvas>
+    <canvas id="canvas" style="display: none;"></canvas>
 
     <!-- Controls for video -->
     <button id="startRecord">Start Recording</button>
